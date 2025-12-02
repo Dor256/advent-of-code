@@ -42,6 +42,10 @@ export class Grid<T> {
   }
 }
 
+export function mod(a: number, b: number): number {
+  return ((a % b) + b) % b;
+}
+
 export function fromPoint(point: Point): `${number}|${number}` {
   return `${point.x}|${point.y}`;
 }
@@ -70,4 +74,20 @@ export function invariant(condition: unknown, message: string): asserts conditio
   if (!condition) {
     throw Error(message);
   }
+}
+
+export function zip<T, R>(arr1: T[], arr2: R[]): [T, R][] {
+  return arr1.map((item, idx) => [item, arr2[idx]]);
+}
+
+export function range(from: number, to: number, inclusive: boolean = true): number[] {
+  return Array.from({ length: to - from + (inclusive ? 1 : 0) }).map((_, idx) => idx + from);
+}
+
+export function sumIf(arr: number[], predicate: (item: number) => boolean): number {
+  return arr.reduce((acc, item) => predicate(item) ? acc + item : acc, 0);
+}
+
+export function sum(arr: number[]): number {
+  return sumIf(arr, () => true);
 }
