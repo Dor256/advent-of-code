@@ -1,21 +1,21 @@
 import { expect, describe, it } from "bun:test";
 import { solve } from ".";
 
-describe.skip("Part1", () => {
+describe("Part1", () => {
   it("test1", async () => {
     const input = `3,0,4,0,99`
     const p1 = await solve();
 
-    expect(p1).toEqual([]);
+    expect(p1).toEqual(9775037);
   });
 });
 
-describe("Part2", () => {
+describe.skip("Part2", () => {
   it.skip("test1", async () => {
     const input = `3,12,6,12,15,1,13,14,13,4,13,99,-1,0,1,9`;
     const p2 = await solve(input);
 
-    expect(p2).toEqual([]);
+    expect(p2).toEqual(15586959);
   });
 
   it.skip("test2", async () => {
@@ -29,8 +29,8 @@ describe("Part2", () => {
   });
 
   it("part2 solution", async () => {
-    await solve();
+    const p2 = await solve();
 
-    expect(true).toBeTruthy();
+    expect(p2).toEqual(15586959);
   });
 });

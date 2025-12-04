@@ -16,6 +16,8 @@ export async function solve(input?: string) {
   input ??= await Bun.file(`${import.meta.dir}/input.txt`).text();
   const ranges = parseInput(input);
 
-  part1(ranges, /^(\d+)\1$/);
-  return part2(ranges);
+  return {
+    p1: () => part1(ranges, /^(\d+)\1$/),
+    p2: () => part2(ranges)
+  }
 }

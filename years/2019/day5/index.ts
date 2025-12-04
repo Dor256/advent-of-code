@@ -1,15 +1,22 @@
-import { runProgram } from "../../../intcode";
+import { IntCodeComputer, runProgram } from "../intcode";
 
 function parseInput(input: string): number[] {
   return input.split(",").map(Number);
 }
 
-function part1(program: number[]) {
-  return runProgram(program);
+function part1(program: number[], input: number) {
+  const computer = new IntCodeComputer();
+  computer.runProgram(program, [input]);
+  return computer.getProgramOutputs().at(-1);
+}
+
+function part2(program: number[]) {
+  return part1(program, 5);
 }
 
 export async function solve(input?: string) {
   input ??= await Bun.file(`${import.meta.dir}/input.txt`).text();
   const program = parseInput(input);
-  return part1(program);
+  return part1(program, 1);
+  // return part2(program);
 }

@@ -4,23 +4,27 @@ export type Point = {
 };
 
 export class Grid<T> {
-  private map: Map<string, T>;
+  private hashMap: Map<string, T>;
+  private numOfCols: number;
+  private numOfRows: number;
   constructor() {
-    this.map = new Map<string, T>();
+    this.hashMap = new Map<string, T>();
+    this.numOfCols = 0;
+    this.numOfRows = 0;
   }
 
   get(point: Point) {
     const key = fromPoint(point);
-    return this.map.get(key);
+    return this.hashMap.get(key);
   }
 
   set(point: Point, value: T) {
     const key = fromPoint(point);
-    return this.map.set(key, value)
+    return this.hashMap.set(key, value)
   }
 
   filter(predicate: (item: T) => boolean): Grid<T> {
-    const entries = this.map.entries();
+    const entries = this.hashMap.entries();
     const newGrid = new Grid<T>();
     for (const [key, element] of entries) {
       if (predicate(element)) {
@@ -30,15 +34,64 @@ export class Grid<T> {
     return newGrid;
   }
 
+  map<R>(mapper: (point: Point, item: T) => R): Grid<R> {
+    const newGrid = new Grid<R>();
+    for (const [point, val] of this.hashMap) {
+      newGrid.set(toPoint(point), mapper(toPoint(point), val));
+    }
+    return newGrid;
+  }
+
   values(): T[] {
-    return this.map.values().toArray()
+    return this.hashMap.values().toArray()
   }
 
   points(): Point[] {
-    return this.map
+    return this.hashMap
       .keys()
       .map(toPoint)
       .toArray()
+  }
+
+  rowSize(): number {
+    if (this.numOfRows) {
+      return this.numOfRows;
+    }
+    this.numOfRows = Math.max(...this.points().map(({ y }) => y));
+    return this.numOfRows;
+  }
+
+  colSize(): number {
+    if (this.numOfCols) {
+      return this.numOfCols;
+    }
+    this.numOfCols = Math.max(...this.points().map(({ x }) => x));
+    return this.numOfCols;
+  }
+
+  up(point: Point): Point {
+    return { ...point, y: point.y - 1 };
+  }
+
+  down(point: Point): Point {
+    return { ...point, y: point.y + 1 };
+  }
+
+  right(point: Point): Point {
+    return { ...point, x: point.x + 1 };
+  }
+
+  left(point: Point): Point {
+    return { ...point, x: point.x - 1 };
+  }
+
+  print() {
+    this.hashMap.forEach((item, pointStr) => {
+      const point = toPoint(pointStr);
+      if (point.x === 0) console.log();
+      console.write(item as string);
+    });
+    console.log();
   }
 }
 
@@ -90,4 +143,12 @@ export function sumIf(arr: number[], predicate: (item: number) => boolean): numb
 
 export function sum(arr: number[]): number {
   return sumIf(arr, () => true);
+}
+
+export function permutations(arr: number[]): number[][] {
+  if (arr.length === 0) return [[]];
+
+  return arr.flatMap((v, i) =>
+    permutations(arr.filter((_, idx) => idx !== i)).map(p => [v, ...p])
+  );
 }
