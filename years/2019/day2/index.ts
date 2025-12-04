@@ -5,17 +5,17 @@ function parseInput(input: string): number[] {
 }
 
 function part1(program: number[]) {
-  const computer = new IntCodeComputer();
-  const result = computer.runProgram(program.with(1, 12).with(2, 2), []);
-  return result[0];
+  const computer = new IntCodeComputer(program.with(1, 12).with(2, 2));
+  const result = computer.runProgram([]);
+  return result.program[0];
 }
 
 function part2(program: number[]) {
   for (let noun = 0; noun <= 99; noun++) {
     for (let verb = 0; verb <= 99; verb++) {
-      const computer = new IntCodeComputer();
-      const result = computer.runProgram(program.with(1, noun).with(2, verb), []);
-      if (result[0] === 19690720) {
+      const computer = new IntCodeComputer(program.with(1, noun).with(2, verb));
+      const result = computer.runProgram([]);
+      if (result.program[0] === 19690720) {
         return 100 * noun + verb;
       }
     }

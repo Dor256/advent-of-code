@@ -1,5 +1,5 @@
-import { invariant, permutations, range } from "../../../utils";
-import { runProgram } from "../intcode";
+import { permutations, range } from "../../../utils";
+import { IntCodeComputer } from "../intcode";
 
 function parseInput(input: string): number[] {
   return input.split(",").map(Number);
@@ -7,29 +7,27 @@ function parseInput(input: string): number[] {
 
 function part1(program: number[]) {
   const outputSignals: number[] = []
-  const outputs: number[] = [];
-  const outputSignal = (arg: number) => outputs.push(arg);
   const settings = permutations(range(0, 4));
   for (const [a, b, c ,d, e] of settings) {
-    runProgram(program, [a, 0], outputSignal);
-    const thrusterAOutput = outputs.shift();
-    invariant(thrusterAOutput !== undefined, "Output A doesn't exist!");
+    const thrusterA = new IntCodeComputer(program);
+    thrusterA.runProgram([a, 0]);
+    const [thrusterAOutput] = thrusterA.getProgramOutputs();
 
-    runProgram(program, [b, thrusterAOutput], outputSignal);
-    const thrusterBOutput = outputs.shift();
-    invariant(thrusterBOutput !== undefined, "Output B doesn't exist!");
+    const thrusterB = new IntCodeComputer(program);
+    thrusterB.runProgram([b, thrusterAOutput]);
+    const [thrusterBOutput] = thrusterB.getProgramOutputs();
 
-    runProgram(program, [c, thrusterBOutput], outputSignal);
-    const thrusterCOutput = outputs.shift();
-    invariant(thrusterCOutput !== undefined, "Output C doesn't exist!");
+    const thrusterC = new IntCodeComputer(program);
+    thrusterC.runProgram([c, thrusterBOutput]);
+    const [thrusterCOutput] = thrusterC.getProgramOutputs();
 
-    runProgram(program, [d, thrusterCOutput], outputSignal);
-    const thrusterDOutput = outputs.shift();
-    invariant(thrusterDOutput !== undefined, "Output D doesn't exist!");
+    const thrusterD = new IntCodeComputer(program);
+    thrusterD.runProgram([d, thrusterCOutput]);
+    const [thrusterDOutput] = thrusterD.getProgramOutputs();
 
-    runProgram(program, [e, thrusterDOutput], outputSignal);
-    const thrusterEOutput = outputs.shift();
-    invariant(thrusterEOutput !== undefined, "Output E doesn't exist!");
+    const thrusterE = new IntCodeComputer(program);
+    thrusterE.runProgram([e, thrusterDOutput]);
+    const [thrusterEOutput] = thrusterE.getProgramOutputs();
 
     outputSignals.push(thrusterEOutput);
   }
@@ -39,42 +37,42 @@ function part1(program: number[]) {
 
 function part2(program: number[]) {
   const outputSignals: number[] = []
-  const outputs: number[] = [];
-  const outputSignal = (arg: number) => outputs.push(arg);
   const settings = permutations(range(5, 9));
-  let inputs: number[] = [0];
+  let inputs: number[] = [];
 
   for (const [a, b, c ,d, e] of settings) {
-    while (inputs.length > 0) {
+    const thrusterA = new IntCodeComputer(program);
+    const thrusterB = new IntCodeComputer(program);
+    const thrusterC = new IntCodeComputer(program);
+    const thrusterD = new IntCodeComputer(program);
+    const thursterE = new IntCodeComputer(program);
+
+    let firstIteration = true;
+    while (true) {
       const input = inputs.pop();
-      console.log("IN", input);
-      runProgram(program, [a, input!], outputSignal);
-      const thrusterAOutput = outputs.shift();
-      invariant(thrusterAOutput !== undefined, "Output A doesn't exist!");
 
-      console.log("E", thrusterAOutput);
-      runProgram(program, [b, thrusterAOutput], outputSignal);
-      const thrusterBOutput = outputs.shift();
-      invariant(thrusterBOutput !== undefined, "Output B doesn't exist!");
+      const { done } = thrusterA.runProgram(firstIteration ? [a, 0] : [input!]);
+      if (done) {
+        outputSignals.push(input!);
+        break;
+      }
+      const [thrusterAOutput] = thrusterA.getProgramOutputs();
 
-      runProgram(program, [c, thrusterBOutput], outputSignal);
-      const thrusterCOutput = outputs.shift();
-      invariant(thrusterCOutput !== undefined, "Output C doesn't exist!");
+      thrusterB.runProgram(firstIteration ? [b, thrusterAOutput] : [thrusterAOutput]);
+      const [thrusterBOutput] = thrusterB.getProgramOutputs();
 
-      runProgram(program, [d, thrusterCOutput], outputSignal);
-      const thrusterDOutput = outputs.shift();
-      invariant(thrusterDOutput !== undefined, "Output D doesn't exist!");
+      thrusterC.runProgram(firstIteration ? [c, thrusterBOutput] : [thrusterBOutput]);
+      const [thrusterCOutput] = thrusterC.getProgramOutputs();
 
-      runProgram(program, [e, thrusterDOutput], outputSignal);
-      const thrusterEOutput = outputs.shift();
-      invariant(thrusterEOutput !== undefined, "Output E doesn't exist!");
+      thrusterD.runProgram(firstIteration ? [d, thrusterCOutput] : [thrusterCOutput]);
+      const [thrusterDOutput] = thrusterD.getProgramOutputs();
 
-      console.log("E", thrusterEOutput);
+      thursterE.runProgram(firstIteration ? [e, thrusterDOutput] : [thrusterDOutput]);
+      const [thrusterEOutput] = thursterE.getProgramOutputs();
 
       inputs.push(thrusterEOutput);
+      firstIteration = false;
     }
-
-    outputSignals.push(...inputs);
   }
 
   return Math.max(...outputSignals);
@@ -83,5 +81,8 @@ function part2(program: number[]) {
 export async function solve(input?: string) {
   input ??= await Bun.file(`${import.meta.dir}/input.txt`).text();
   const program = parseInput(input);
-  return part2(program);
+  return {
+    p1: () => part1(program),
+    p2: () => part2(program)
+  }
 }

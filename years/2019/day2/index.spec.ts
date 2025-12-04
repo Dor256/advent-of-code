@@ -1,7 +1,7 @@
 import { describe, it, expect } from "bun:test";
 import { solve } from ".";
 
-describe.skip("Part1", () => {
+describe("Part1", () => {
   it.skip("input1", async () => {
     const input = `1,9,10,3,2,3,11,0,99,30,40,50`;
     const p1 = await solve(input);
@@ -14,7 +14,7 @@ describe.skip("Part1", () => {
   });
 });
 
-describe("Part2", () => {
+describe.skip("Part2", () => {
   it("solve", async () => {
     const p2 = await solve();
     expect(p2).toEqual(4259);
