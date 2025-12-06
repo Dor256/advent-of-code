@@ -1,0 +1,3 @@
+#!/bin/zsh
+
+bun test --watch years/$1/day$2

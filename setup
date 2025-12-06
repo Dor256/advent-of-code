@@ -1,0 +1,38 @@
+#!/bin/zsh
+
+printf "Enter year: "
+read year
+
+printf "Enter day: "
+read day
+
+function setupIndex() {
+  echo "export async function solve(input?: string) {\n\
+  input ??= await Bun.file(\`\${import.meta.dir}/input.txt\`).text();\n\
+  return {\n\
+    p1: () => {},\n\
+    p2: () => {}\n\
+  };\n\
+}" > ./years/$1/day$2/index.ts
+}
+
+function setupTests() {
+  echo "import { describe, it, expect } from \"bun:test\";\n\
+import { solve } from \".\";\n\
+  \n\ndescribe(\"Part1\", () => {\n\
+  it(\"test1\", async () => {\n\
+
+  });
+});" > ./years/$1/day$2/index.spec.ts
+}
+
+if [ -d "./years/$year/day$day" ]; then
+  echo "Day exists"
+  exit 0
+else
+  mkdir ./years/$year/day$day
+  setupIndex $year $day
+  setupTests $year $day
+  touch ./years/$year/day$day/input.txt
+fi
+

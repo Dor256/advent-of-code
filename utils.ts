@@ -3,6 +3,22 @@ export type Point = {
   y: number;
 };
 
+export function up(point: Point): Point {
+  return { ...point, y: point.y - 1 };
+}
+
+export function down(point: Point): Point {
+  return { ...point, y: point.y + 1 };
+}
+
+export function right(point: Point): Point {
+  return { ...point, x: point.x + 1 };
+}
+
+export function left(point: Point): Point {
+  return { ...point, x: point.x - 1 };
+}
+
 export class Grid<T> {
   private hashMap: Map<string, T>;
   private numOfCols: number;
@@ -67,22 +83,6 @@ export class Grid<T> {
     }
     this.numOfCols = Math.max(...this.points().map(({ x }) => x));
     return this.numOfCols;
-  }
-
-  up(point: Point): Point {
-    return { ...point, y: point.y - 1 };
-  }
-
-  down(point: Point): Point {
-    return { ...point, y: point.y + 1 };
-  }
-
-  right(point: Point): Point {
-    return { ...point, x: point.x + 1 };
-  }
-
-  left(point: Point): Point {
-    return { ...point, x: point.x - 1 };
   }
 
   print() {
@@ -151,4 +151,20 @@ export function permutations(arr: number[]): number[][] {
   return arr.flatMap((v, i) =>
     permutations(arr.filter((_, idx) => idx !== i)).map(p => [v, ...p])
   );
+}
+
+export function transpose<T>(arr: T[][]): T[][] {
+  return arr[0].map((_, i) => arr.map((row) => row[i]));
+}
+
+export function takeWhile<T>(arr: T[], predicate: (item: T) => boolean): T[] {
+  const [item, ...rest] = arr;
+  if (predicate(item)) {
+    return [item, ...takeWhile(rest, predicate)];
+  }
+  return [];
+}
+
+export function isNumeric(str: string): boolean {
+  return !Number.isNaN(Number(str));
 }

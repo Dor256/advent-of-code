@@ -9,12 +9,14 @@ const OpCode = {
   JumpIfFalse: 6,
   LessThan: 7,
   Equals: 8,
+  Offset: 9,
   Halt: 99
 };
 
 const Mode = {
   Position: 0,
-  Immediate: 1
+  Immediate: 1,
+  Relative: 2
 };
 
 function extractModes(instruction: number): number[] {
@@ -26,6 +28,7 @@ type Program = number[];
 type State = {
   instructionPointer: number;
   outputs: number[];
+  relativeBase: number;
   done: boolean;
   program: Program;
 };
@@ -36,6 +39,7 @@ export class IntCodeComputer {
     this.state = {
       instructionPointer: 0,
       outputs: [],
+      relativeBase: 0,
       done: false,
       program
     }
@@ -48,43 +52,75 @@ export class IntCodeComputer {
     };
   }
 
+  private getArgument(argument: number, mode: number) {
+    const { program, relativeBase } = this.state;
+    switch (mode) {
+      case Mode.Position:
+        return program.at(argument);
+      case Mode.Immediate:
+        return argument;
+      case Mode.Relative:
+        return program.at(argument + relativeBase);
+      default:
+        return program.at(argument);
+    }
+  }
+
+  private getAddress(address: number, mode?: number) {
+    const { relativeBase } = this.state;
+    return (mode ?? 0) === Mode.Position ? address : address + relativeBase;
+  }
+
   private add(program: number[]) {
     const { instructionPointer } = this.state;
-    const [instruction, argA, argB, resAddress] = program.slice(instructionPointer, instructionPointer + 4);
-    const [aMode, bMode] = extractModes(instruction);
-    const a = (aMode ?? 0) === Mode.Position ? program.at(argA) : argA;
-    const b = (bMode ?? 0) === Mode.Position ? program.at(argB) : argB;
-    invariant(a !== undefined, "Invalid Argument: a");
-    invariant(b !== undefined, "Invalid Argument: b");
+    const [instruction, argA, argB, argAddress] = program.slice(instructionPointer, instructionPointer + 4);
+    const [aMode, bMode, addressMode] = extractModes(instruction);
+
+    const a = this.getArgument(argA, aMode) ?? 0;
+    const b = this.getArgument(argB, bMode) ?? 0;
+    const address = this.getAddress(argAddress, addressMode);
+
+    invariant(a !== undefined, "Add: Invalid Argument: a");
+    invariant(b !== undefined, "Add: Invalid Argument: b");
 
     const result = a + b;
-    return program.with(resAddress, result);
+    const copy = program.slice();
+    copy[address] = result;
+    return copy;
   }
 
   private mult(program: number[]) {
     const { instructionPointer } = this.state;
-    const [instruction, argA, argB, resAddress] = program.slice(instructionPointer, instructionPointer + 4);
-    const [aMode, bMode] = extractModes(instruction);
-    const a = (aMode ?? 0) === Mode.Position ? program.at(argA) : argA;
-    const b = (bMode ?? 0) === Mode.Position ? program.at(argB) : argB;
-    invariant(a !== undefined, "Invalid Argument: a");
-    invariant(b !== undefined, "Invalid Argument: b");
+    const [instruction, argA, argB, argAddress] = program.slice(instructionPointer, instructionPointer + 4);
+    const [aMode, bMode, addressMode] = extractModes(instruction);
+    const a = this.getArgument(argA, aMode) ?? 0;
+    const b = this.getArgument(argB, bMode) ?? 0;
+    const address = this.getAddress(argAddress, addressMode);
+    invariant(a !== undefined, "Mult: Invalid Argument: a");
+    invariant(b !== undefined, "Mult: Invalid Argument: b");
 
     const result = a * b;
-    return program.with(resAddress, result);
+    const copy = program.slice();
+    copy[address] = result;
+    return copy;
   }
 
   private input(program: number[], input: number) {
     const { instructionPointer } = this.state;
-    const [, resAddress] = program.slice(instructionPointer, instructionPointer + 2);
-    return program.with(resAddress, input);
+    const [instruction, argAddress] = program.slice(instructionPointer, instructionPointer + 2);
+    const [mode] = extractModes(instruction);
+    const address = this.getAddress(argAddress, mode);
+
+    const copy = program.slice();
+    copy[address] = input;
+    return copy;
   }
 
   private output(program: number[]): number {
     const { instructionPointer } = this.state;
     const [instruction, rawArg] = program.slice(instructionPointer, instructionPointer + 2);
     const [argMode] = extractModes(instruction);
-    const arg = (argMode ?? 0) === Mode.Position ? program.at(rawArg) : rawArg;
+    const arg = this.getArgument(rawArg, argMode);
     invariant(arg !== undefined, "Invalid argument: arg");
 
     return arg;
@@ -94,8 +130,8 @@ export class IntCodeComputer {
     const { instructionPointer } = this.state;
     const [instruction, predicateArg, resArg] = program.slice(instructionPointer, instructionPointer + 3);
     const [predicateMode, resMode] = extractModes(instruction);
-    const predicate = (predicateMode ?? 0) === Mode.Position ? program.at(predicateArg) : predicateArg;
-    const res = (resMode ?? 0) === Mode.Position ? program.at(resArg) : resArg;
+    const predicate = this.getArgument(predicateArg, predicateMode ?? 0);
+    const res = this.getArgument(resArg, resMode ?? 0);
     invariant(predicate !== undefined, "Invalid argument: predicate");
     invariant(res !== undefined, "Invalid argument: res");
 
@@ -106,8 +142,8 @@ export class IntCodeComputer {
     const { instructionPointer } = this.state;
     const [instruction, predicateArg, resArg] = program.slice(instructionPointer, instructionPointer + 3);
     const [predicateMode, resMode] = extractModes(instruction);
-    const predicate = (predicateMode ?? 0) === Mode.Position ? program.at(predicateArg) : predicateArg;
-    const res = (resMode ?? 0) === Mode.Position ? program.at(resArg) : resArg;
+    const predicate = this.getArgument(predicateArg, predicateMode ?? 0);
+    const res = this.getArgument(resArg, resMode ?? 0);
     invariant(predicate !== undefined, "Invalid argument: predicate");
     invariant(res !== undefined, "Invalid argument: res");
 
@@ -116,30 +152,46 @@ export class IntCodeComputer {
 
   private lessThan(program: number[]) {
     const { instructionPointer } = this.state;
-    const [instruction, argA, argB, resAddress] = program.slice(instructionPointer, instructionPointer + 4);
-    const [aMode, bMode] = extractModes(instruction);
-    const a = (aMode ?? 0) === Mode.Position ? program.at(argA) : argA;
-    const b = (bMode ?? 0) === Mode.Position ? program.at(argB) : argB;
-    invariant(a !== undefined, "Invalid Argument: a");
-    invariant(b !== undefined, "Invalid Argument: b");
+    const [instruction, argA, argB, argAddress] = program.slice(instructionPointer, instructionPointer + 4);
+    const [aMode, bMode, addressMode] = extractModes(instruction);
+    const a = this.getArgument(argA, aMode);
+    const b = this.getArgument(argB, bMode);
+    const address = this.getAddress(argAddress, addressMode);
+    invariant(a !== undefined, "LT: Invalid Argument: a");
+    invariant(b !== undefined, "LT: Invalid Argument: b");
 
     const res = a < b ? 1 : 0;
 
-    return program.with(resAddress, res);
+    const copy = program.slice();
+    copy[address] = res;
+    return copy;
   }
 
   private equals(program: number[]) {
     const { instructionPointer } = this.state;
-    const [instruction, argA, argB, resAddress] = program.slice(instructionPointer, instructionPointer + 4);
-    const [aMode, bMode] = extractModes(instruction);
-    const a = (aMode ?? 0) === Mode.Position ? program.at(argA) : argA;
-    const b = (bMode ?? 0) === Mode.Position ? program.at(argB) : argB;
-    invariant(a !== undefined, "Invalid Argument: a");
-    invariant(b !== undefined, "Invalid Argument: b");
+    const [instruction, argA, argB, argAddress] = program.slice(instructionPointer, instructionPointer + 4);
+    const [aMode, bMode, addressMode] = extractModes(instruction);
+    const a = this.getArgument(argA, aMode) ?? 0;
+    const b = this.getArgument(argB, bMode) ?? 0;
+    const address = this.getAddress(argAddress, addressMode);
+    invariant(a !== undefined, "Eq: Invalid Argument: a");
+    invariant(b !== undefined, "Eq: Invalid Argument: b");
 
     const res = a === b ? 1 : 0;
 
-    return program.with(resAddress, res);
+    const copy = program.slice();
+    copy[address] = res;
+    return copy;
+  }
+
+  private offset(program: number[]) {
+    const { instructionPointer, relativeBase } = this.state;
+    const [instruction, rawArg] = program.slice(instructionPointer, instructionPointer + 2);
+    const [mode] = extractModes(instruction);
+    const arg = this.getArgument(rawArg, mode);
+    invariant(arg !== undefined, "Offset: Invalid Argument: arg");
+    
+    return relativeBase + arg;
   }
 
   getProgramOutputs() {
@@ -201,6 +253,11 @@ export class IntCodeComputer {
             program: this.equals(program)
           });
           break;
+        case OpCode.Offset:
+          this.setState({
+            instructionPointer: instructionPointer + 2,
+            relativeBase: this.offset(program)
+          });
       }
     }
   }

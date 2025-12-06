@@ -1,13 +1,15 @@
-import { IntCodeComputer, runProgram } from "../intcode";
+import { IntCodeComputer } from "../intcode";
 
 function parseInput(input: string): number[] {
   return input.split(",").map(Number);
 }
 
 function part1(program: number[], input: number) {
-  const computer = new IntCodeComputer();
-  computer.runProgram(program, [input]);
-  return computer.getProgramOutputs().at(-1);
+  const computer = new IntCodeComputer(program);
+  while (true) {
+    const { done } = computer.runProgram([input]);
+    if (done) return computer.getProgramOutputs().at(-1);
+  }
 }
 
 function part2(program: number[]) {
