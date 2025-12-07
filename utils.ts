@@ -51,9 +51,8 @@ export class Grid<T> {
   }
 
   filter(predicate: (item: T) => boolean): Grid<T> {
-    const entries = this.hashMap.entries();
     const newGrid = new Grid<T>();
-    for (const [key, element] of entries) {
+    for (const [key, element] of this.hashMap) {
       if (predicate(element)) {
         newGrid.set(toPoint(key), element);
       }
