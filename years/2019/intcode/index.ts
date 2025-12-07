@@ -29,7 +29,6 @@ type State = {
   instructionPointer: number;
   outputs: number[];
   relativeBase: number;
-  done: boolean;
   program: Program;
 };
 
@@ -40,7 +39,6 @@ export class IntCodeComputer {
       instructionPointer: 0,
       outputs: [],
       relativeBase: 0,
-      done: false,
       program
     }
   }
