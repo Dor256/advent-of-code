@@ -103,13 +103,34 @@ export class Grid<T> {
     return this.numOfCols;
   }
 
-  print() {
-    this.hashMap.forEach((item, pointStr) => {
-      const point = toPoint(pointStr);
-      if (point.x === 0) console.log();
-      console.write(item as string);
-    });
-    console.log();
+  print(filler: string = ' ') {
+    if (this.hashMap.size === 0) {
+      console.log("Grid is empty.");
+      return;
+    }
+    const points = this.points();
+
+    const minX = Math.min(...points.map(({ x }) => x));
+    const maxX = Math.max(...points.map(({ x }) => x));
+    const minY = Math.min(...points.map(({ y }) => y));
+    const maxY = Math.max(...points.map(({ y }) => y));
+
+    for (let row = minY; row <= maxY; row++) {
+      let rowOutput = "";
+
+      for (let col = minX; col <= maxX; col++) {
+        const point = { x: col, y: row };
+        const key = fromPoint(point);
+
+        const value = this.hashMap.get(key);
+        if (value !== undefined) {
+          rowOutput += `${value}`; 
+        } else {
+          rowOutput += filler;
+        }
+      }
+      console.log(rowOutput);
+    }
   }
 }
 
