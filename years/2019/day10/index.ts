@@ -1,15 +1,7 @@
 import { distance, gcd, Grid, type Point } from "../../../utils";
 
 function parseInput(input: string): Grid<string> {
-  const grid = new Grid<string>();
-  const lines = input.split("\n");
-  lines.forEach((line, row) => {
-    const chars = line.split("");
-    chars.forEach((char, col) => {
-      grid.set({ x: col, y: row }, char)
-    });
-  });
-  return grid;
+  return Grid.fromString(input);
 }
 
 function getVisibleAsteroids(position: Point, asteroids: Point[]) {

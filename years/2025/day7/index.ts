@@ -1,13 +1,7 @@
 import { down, fromPoint, Grid, invariant, left, right, toPoint, type Point } from "../../../utils";
 
 function parseInput(input: string) {
-  const grid = new Grid<string>();
-  input.split("\n")
-    .forEach((rows, row) => rows.split("").forEach((val, col) => {
-      const point = { x: col, y: row };
-      grid.set(point, val);
-    }));
-  return grid;
+  return Grid.fromString(input);
 };
 
 function endOfManifold(beams: Set<string>, grid: Grid<string>) {

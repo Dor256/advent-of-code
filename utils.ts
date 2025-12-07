@@ -29,6 +29,17 @@ export class Grid<T> {
     this.numOfRows = 0;
   }
 
+  static fromString(input: string): Grid<string> {
+    return input
+      .split("\n")
+      .reduce((grid, rows, row) => {
+        rows.split("").forEach((val, col) => {
+          grid.set({ x: col, y: row }, val);
+        });
+        return grid;
+      }, new Grid<string>());
+  }
+
   get(point: Point) {
     const key = fromPoint(point);
     return this.hashMap.get(key);

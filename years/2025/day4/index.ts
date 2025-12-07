@@ -1,36 +1,19 @@
-import { fromPoint, Grid, type Point } from "../../../utils";
+import { down, fromPoint, Grid, left, right, up, type Point } from "../../../utils";
 
 function parseInput(input: string): Grid<string> {
-  const grid = new Grid<string>();
-  const lines = input.split("\n");
-  lines.forEach((line, row) => {
-    const chars = line.split("");
-    chars.forEach((char, col) => {
-      grid.set({ x: col, y: row }, char)
-    });
-  });
-  return grid;
+  return Grid.fromString(input);
 }
 
 function isReachable(grid: Grid<string>, point: Point) {
-  const up = grid.up(point);
-  const down = grid.down(point);
-  const left = grid.left(point);
-  const right = grid.right(point);
-  const upRight = grid.up(right);
-  const upLeft = grid.up(left);
-  const downRight = grid.down(right);
-  const downLeft = grid.down(left);
-
   return [
-    up,
-    down,
-    left,
-    right,
-    upRight,
-    upLeft,
-    downRight,
-    downLeft
+    up(point),
+    down(point),
+    left(point),
+    right(point),
+    up(right(point)),
+    up(left(point)),
+    down(right(point)),
+    down(right(point))
   ]
     .map((point) => grid.get(point))
     .filter((item) => item === '@')
