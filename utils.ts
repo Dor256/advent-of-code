@@ -58,6 +58,13 @@ export class Grid<T> {
     return newGrid;
   }
 
+  find(predicate: (point: Point, item: T) => boolean): [Point, T] | undefined {
+    for (const [pointKey, val] of this.hashMap) {
+      const point = toPoint(pointKey);
+      if (predicate(point, val)) return [point, val];
+    }
+  }
+
   values(): T[] {
     return this.hashMap.values().toArray()
   }
