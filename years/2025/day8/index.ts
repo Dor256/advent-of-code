@@ -61,7 +61,7 @@ function calculateBoxDistances(boxes: Point3D[]) {
   return distances.toSorted((a, b) => a.distance - b.distance);
 }
 
-function toOneCircuit(distances: BoxDistance[], circuits: Set<string>[], size: number) {
+function findLastBoxesForCircuit(distances: BoxDistance[], circuits: Set<string>[], size: number) {
   const [distance, ...rest] = distances;
   if (!distance) return distance;
 
@@ -70,15 +70,15 @@ function toOneCircuit(distances: BoxDistance[], circuits: Set<string>[], size: n
     const mergedCircuits = existingCircuits.reduce((merged, circuit) => merged.union(circuit), new Set<string>());
     const newCircuits = [mergedCircuits, ...otherCircuits];
     if (otherCircuits.length === 0 && mergedCircuits.size === size) return distance;
-    return toOneCircuit(rest, newCircuits, size);
+    return findLastBoxesForCircuit(rest, newCircuits, size);
   }
   if (existingCircuits.length === 1) {
     existingCircuits[0].add(distance.p1);
     existingCircuits[0].add(distance.p2);
     if (otherCircuits.length === 0 && existingCircuits[0].size === size) return distance;
-    return toOneCircuit(rest, circuits, size);
+    return findLastBoxesForCircuit(rest, circuits, size);
   }
-  return toOneCircuit(rest, [...circuits, new Set([distance.p1, distance.p2])], size);
+  return findLastBoxesForCircuit(rest, [...circuits, new Set([distance.p1, distance.p2])], size);
 }
 
 function part1(boxes: Point3D[], numOfPairs: number) {
@@ -91,7 +91,7 @@ function part1(boxes: Point3D[], numOfPairs: number) {
 
 function part2(boxes: Point3D[]) {
   const distances = calculateBoxDistances(boxes);
-  const cause = toOneCircuit(distances, [], boxes.length);
+  const cause = findLastBoxesForCircuit(distances, [], boxes.length);
   const [x1] = cause.p1.split("|");
   const [x2] = cause.p2.split("|");
   return +x1 * +x2;
