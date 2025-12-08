@@ -157,6 +157,15 @@ export function gcd(a: number, b: number): number {
   return gcd(absB, absA % absB);
 }
 
+export function lcm(a: number, b: number): number {
+  const absA = Math.abs(a);
+  const absB = Math.abs(b);
+   if (absA === 0 || absB === 0) {
+    return 0;
+  }
+  return (absA * absB) / gcd(absA, absB);
+}
+
 export function distance(pointA: Point, pointB: Point): number {
   return Math.hypot(pointB.x - pointA.x, pointB.y - pointA.y);
 }
