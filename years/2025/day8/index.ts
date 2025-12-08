@@ -1,4 +1,4 @@
-import { partition, product, sum, type Point } from "../../../utils";
+import { partition, product, type Point } from "../../../utils";
 
 type Point3D = Point & {
   z: number;
@@ -16,12 +16,10 @@ function parseInput(input: string) {
 }
 
 function distance3D(p1: Point3D, p2: Point3D) {
-  return Math.sqrt(
-    sum([
-      Math.pow((p2.x - p1.x), 2),
-      Math.pow((p2.y - p1.y), 2),
-      Math.pow((p2.z - p1.z), 2)
-    ])
+  return Math.hypot(
+    p2.x - p1.x,
+    p2.y - p1.y,
+    p2.z - p1.z
   );
 }
 
