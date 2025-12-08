@@ -183,6 +183,10 @@ export function sum(arr: number[]): number {
   return sumIf(arr, () => true);
 }
 
+export function product(arr: number[]): number {
+  return arr.reduce((acc, item) => acc * item, 1);
+}
+
 export function permutations(arr: number[]): number[][] {
   if (arr.length === 0) return [[]];
 
@@ -205,4 +209,10 @@ export function takeWhile<T>(arr: T[], predicate: (item: T) => boolean): T[] {
 
 export function isNumeric(str: string): boolean {
   return !Number.isNaN(Number(str));
+}
+
+export function partition<T>(arr: T[], predicate: (item: T) => boolean): [T[], T[]] {
+  const left = arr.filter(predicate);
+  const right = arr.filter((item) => !predicate(item));
+  return [left, right];
 }
