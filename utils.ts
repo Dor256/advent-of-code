@@ -181,6 +181,9 @@ export function zip<T, R>(arr1: T[], arr2: R[]): [T, R][] {
 }
 
 export function range(from: number, to: number, inclusive: boolean = true): number[] {
+  if (from > to) {
+    return Array.from({ length: from - to + (inclusive ? 1 : 0) }).map((_, idx) => idx + to);
+  }
   return Array.from({ length: to - from + (inclusive ? 1 : 0) }).map((_, idx) => idx + from);
 }
 
